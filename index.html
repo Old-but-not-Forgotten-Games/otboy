@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Арканоид</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      background: #0f1220;
+      overflow: hidden;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      font-family: monospace;
+    }
+    #wrap {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #stage { position: relative; }
+    canvas {
+      display: block;
+      background: #151a2e;
+      border-radius: 8px;
+      box-shadow: 0 0 40px rgba(0,0,0,.5);
+    }
+    #btnSettings {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(255,255,255,.08);
+      color: #cdd5f5;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    #btnSettings:active { background: rgba(255,255,255,.2); }
+    #panel {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 18, 32, .96);
+      color: #fff;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-radius: 8px;
+    }
+    #panel.hidden { display: none; }
+    #panel h2 { font-size: 20px; }
+    #panel h3 { font-size: 15px; color: #9aa3c7; margin-top: 6px; }
+    #panel .row { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+    #panel select {
+      background: #1c2340;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 14px;
+    }
+    #scores { padding-left: 20px; font-size: 13px; color: #cdd5f5; }
+    #scores li { margin: 3px 0; }
+    #levels {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 4px;
+    }
+    #levels button {
+      background: #1c2340;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 5px;
+      padding: 6px 0;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    #levels button:disabled {
+      color: #4a5170;
+      background: #141930;
+      cursor: default;
+    }
+    #levels button.current { outline: 2px solid #4dc3ff; }
+    #btnClose {
+      margin-top: 10px;
+      background: #2a3358;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    #btnClose:active { background: #3a4578; }
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <div id="stage">
+      <canvas id="game"></canvas>
+      <button id="btnSettings">⚙ Настройки</button>
+      <div id="panel" class="hidden">
+        <h2>Настройки</h2>
+        <div class="row">
+          <span>Скорость мяча:</span>
+          <select id="speed">
+            <option value="slow">Медленно</option>
+            <option value="normal" selected>Нормально</option>
+            <option value="fast">Быстро</option>
+          </select>
+        </div>
+        <h3>Лучшие результаты</h3>
+        <ol id="scores"></ol>
+        <h3>Выбор уровня</h3>
+        <div id="levels"></div>
+        <button id="btnClose">Закрыть</button>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="./game.ts"></script>
+</body>
+</html>
