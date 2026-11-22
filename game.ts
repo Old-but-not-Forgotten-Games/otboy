@@ -8,13 +8,19 @@ const BORDER = 6; // видимая рамка поля
 
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
+const headerEl = document.getElementById("header") as HTMLDivElement;
+const hudScore = document.getElementById("hudScore") as HTMLSpanElement;
+const hudLevel = document.getElementById("hudLevel") as HTMLSpanElement;
+const hudLives = document.getElementById("hudLives") as HTMLSpanElement;
 
 // --- адаптивное масштабирование ---------------------------------------------
 function resize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const scale = Math.min(window.innerWidth / W, window.innerHeight / H);
+  const headerH = headerEl.offsetHeight + 8; // высота шапки + отступ
+  const scale = Math.min(window.innerWidth / W, (window.innerHeight - headerH) / H);
   canvas.style.width = `${W * scale}px`;
   canvas.style.height = `${H * scale}px`;
+  headerEl.style.width = `${W * scale}px`;
   canvas.width = W * dpr;
   canvas.height = H * dpr;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -32,6 +38,7 @@ const LS = {
   best: "arkanoid.bestLevel",
   scores: "arkanoid.topScores",
   speed: "arkanoid.speed",
+  save: "arkanoid.save",
 };
 
 function loadBest(): number {
@@ -57,11 +64,71 @@ function saveScore() {
   localStorage.setItem(LS.scores, JSON.stringify(list.slice(0, 5)));
 }
 
+// --- сохранение / продолжение игры -------------------------------------------
+interface SaveData {
+  level: number;
+  score: number;
+  lives: number;
+  bricks: boolean[];
+  ballX: number; ballY: number; vx: number; vy: number;
+  paddleX: number;
+}
+
+function saveGame() {
+  if (state === "gameover" || state === "win") return;
+  const data: SaveData = {
+    level, score, lives,
+    bricks: bricks.map((b) => b.alive),
+    ballX, ballY, vx, vy, paddleX,
+  };
+  localStorage.setItem(LS.save, JSON.stringify(data));
+}
+
+function loadSave(): SaveData | null {
+  try {
+    const v = JSON.parse(localStorage.getItem(LS.save) ?? "null");
+    if (!v || typeof v.level !== "number" || !Array.isArray(v.bricks)) return null;
+    return v as SaveData;
+  } catch {
+    return null;
+  }
+}
+
+function clearSave() {
+  localStorage.removeItem(LS.save);
+}
+
+function restoreSave(): boolean {
+  const s = loadSave();
+  if (!s) return false;
+  level = s.level;
+  score = s.score;
+  lives = s.lives;
+  paddleX = s.paddleX;
+  bricks = makeBricks(s.level);
+  bricks.forEach((b, i) => (b.alive = s.bricks[i] ?? true));
+  ballX = s.ballX; ballY = s.ballY; vx = s.vx; vy = s.vy;
+  state = "ready";
+  fromSave = true;
+  return true;
+}
+
 let speed: Speed = (localStorage.getItem(LS.speed) as Speed) || "normal";
 if (!(speed in SPEEDS)) speed = "normal";
 
+// --- HUD (шапка) ---------------------------------------------------------------
+let hudCache = "";
+function updateHud() {
+  const key = `${score}|${lives}|${level}`;
+  if (key === hudCache) return;
+  hudCache = key;
+  hudScore.textContent = `Очки: ${score}`;
+  hudLevel.textContent = `Уровень ${level + 1}/${TOTAL_LEVELS}`;
+  hudLives.textContent = `Жизни: ${"●".repeat(Math.max(0, lives))}`;
+}
+
 // --- состояние игры ------------------------------------------------------------
-type State = "ready" | "playing" | "gameover" | "win";
+type State = "ready" | "playing" | "paused" | "gameover" | "win";
 
 interface Brick { x: number; y: number; w: number; h: number; color: string; alive: boolean; }
 
@@ -78,6 +145,8 @@ let level = 0;
 let lives = 3;
 let score = 0;
 let paused = false;
+let fromSave = false;
+let saveTimer = 0;
 
 // --- генерация уровней (50, без «радуги») -------------------------------------
 // Палитра: 6 спокойных цветов, на уровень — только 2 (чередуются по рядам).
@@ -138,6 +207,7 @@ function startLevel(i: number) {
   level = i;
   score = 0;
   lives = 3;
+  clearSave();
   loadLevel(i);
 }
 
@@ -164,6 +234,7 @@ canvas.addEventListener("pointerdown", (e) => {
   canvas.setPointerCapture(e.pointerId);
   movePaddle(e.clientX);
   if (state === "ready") state = "playing";
+  else if (state === "paused") state = "playing";
   else if (state === "gameover" || state === "win") startLevel(0);
 });
 canvas.addEventListener("pointermove", (e) => {
@@ -232,6 +303,7 @@ function openPanel() {
   speedSel.value = speed;
   renderScores();
   renderLevels();
+  renderSaveButtons();
   panel.classList.remove("hidden");
 }
 function closePanel() {
@@ -246,6 +318,47 @@ speedSel.addEventListener("change", () => {
   localStorage.setItem(LS.speed, speed);
 });
 
+// --- пауза и сохранение ---------------------------------------------------------
+const btnPause = document.getElementById("btnPause") as HTMLButtonElement;
+const btnResume = document.getElementById("btnResume") as HTMLButtonElement;
+const btnNew = document.getElementById("btnNew") as HTMLButtonElement;
+const saveInfo = document.getElementById("saveInfo") as HTMLDivElement;
+
+btnPause.addEventListener("click", () => {
+  if (state === "playing") {
+    state = "paused";
+    saveGame();
+  } else if (state === "paused") {
+    state = "playing";
+  }
+});
+
+function renderSaveButtons() {
+  const s = loadSave();
+  btnResume.disabled = !s;
+  saveInfo.textContent = s
+    ? `Сохранение: уровень ${s.level + 1}, очки ${s.score}`
+    : "Нет сохранения";
+}
+
+btnResume.addEventListener("click", () => {
+  if (restoreSave()) closePanel();
+});
+
+btnNew.addEventListener("click", () => {
+  clearSave();
+  startLevel(0);
+  closePanel();
+});
+
+// автопауза при сворачивании вкладки / приложения
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && state === "playing") {
+    state = "paused";
+    saveGame();
+  }
+});
+
 // --- обновление -------------------------------------------------------------------
 function update(dt: number) {
   if (paused) return;
@@ -256,6 +369,13 @@ function update(dt: number) {
       ballY = H - 60 - BALL_R;
     }
     return;
+  }
+
+  // авто-сохранение раз в секунду во время игры
+  saveTimer += dt;
+  if (saveTimer >= 1) {
+    saveTimer = 0;
+    saveGame();
   }
 
   // управление ракеткой с клавиатуры
@@ -309,9 +429,11 @@ function update(dt: number) {
     if (level + 1 < TOTAL_LEVELS) {
       level++;
       loadLevel(level);
+      saveGame(); // обновляем сохранение на новый уровень
     } else {
       state = "win";
       saveScore();
+      clearSave();
     }
     return;
   }
@@ -322,6 +444,7 @@ function update(dt: number) {
     if (lives <= 0) {
       state = "gameover";
       saveScore();
+      clearSave();
     } else {
       resetBall();
     }
@@ -354,15 +477,7 @@ function draw() {
   ctx.fillStyle = "#ffffff";
   ctx.fill();
 
-  // HUD
-  ctx.fillStyle = "#9aa3c7";
-  ctx.font = "16px monospace";
-  ctx.textAlign = "left";
-  ctx.fillText(`Очки: ${score}`, BORDER + 8, 28);
-  ctx.textAlign = "right";
-  ctx.fillText(`Жизни: ${"●".repeat(Math.max(0, lives))}`, W - BORDER - 8, 28);
-  ctx.textAlign = "center";
-  ctx.fillText(`Уровень ${level + 1}/${TOTAL_LEVELS}`, W / 2, 28);
+  updateHud();
 
   // оверлеи
   if (state !== "playing") {
@@ -372,14 +487,22 @@ function draw() {
     ctx.textAlign = "center";
     ctx.font = "bold 28px monospace";
     const msg =
-      state === "ready" ? "Тапни или нажми пробел — запуск" :
+      state === "ready" ? (fromSave ? "Продолжение — тапни" : "Тапни, чтобы начать") :
+      state === "paused" ? "Пауза" :
       state === "gameover" ? "Игра окончена" :
       "Победа! 🎉";
     ctx.fillText(msg, W / 2, H / 2 - 10);
+    if (state === "paused") {
+      ctx.font = "16px monospace";
+      ctx.fillStyle = "#9aa3c7";
+      ctx.fillText("Игра сохранена", W / 2, H / 2 + 24);
+      ctx.fillText("Тапни, чтобы продолжить", W / 2, H / 2 + 48);
+    }
     if (state === "gameover" || state === "win") {
       ctx.font = "16px monospace";
       ctx.fillStyle = "#9aa3c7";
-      ctx.fillText(`Очки: ${score} — тапни, чтобы начать заново`, W / 2, H / 2 + 28);
+      ctx.fillText(`Очки: ${score}`, W / 2, H / 2 + 24);
+      ctx.fillText("Тапни, чтобы начать заново", W / 2, H / 2 + 48);
     }
   }
 }
@@ -393,5 +516,5 @@ function frame(now: number) {
   draw();
   requestAnimationFrame(frame);
 }
-loadLevel(0);
+if (!restoreSave()) loadLevel(0);
 requestAnimationFrame(frame);

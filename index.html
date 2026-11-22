@@ -21,26 +21,40 @@
       align-items: center;
       justify-content: center;
     }
-    #stage { position: relative; }
+    #stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    #header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: #cdd5f5;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    #btnPause, #btnSettings {
+      background: rgba(255,255,255,.08);
+      color: #cdd5f5;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    #btnPause:active, #btnSettings:active { background: rgba(255,255,255,.2); }
+    #board { position: relative; }
     canvas {
       display: block;
       background: #151a2e;
       border-radius: 8px;
       box-shadow: 0 0 40px rgba(0,0,0,.5);
     }
-    #btnSettings {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: rgba(255,255,255,.08);
-      color: #cdd5f5;
-      border: 1px solid rgba(255,255,255,.15);
-      border-radius: 8px;
-      padding: 6px 10px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-    #btnSettings:active { background: rgba(255,255,255,.2); }
     #panel {
       position: absolute;
       inset: 0;
@@ -87,6 +101,18 @@
       cursor: default;
     }
     #levels button.current { outline: 2px solid #4dc3ff; }
+    #saveInfo { font-size: 13px; color: #9aa3c7; }
+    #panel .action {
+      background: #2a3358;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 9px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    #panel .action:active { background: #3a4578; }
+    #panel .action:disabled { color: #4a5170; background: #1c2340; cursor: default; }
     #btnClose {
       margin-top: 10px;
       background: #2a3358;
@@ -103,23 +129,35 @@
 <body>
   <div id="wrap">
     <div id="stage">
-      <canvas id="game"></canvas>
-      <button id="btnSettings">⚙ Настройки</button>
-      <div id="panel" class="hidden">
-        <h2>Настройки</h2>
-        <div class="row">
-          <span>Скорость мяча:</span>
-          <select id="speed">
-            <option value="slow">Медленно</option>
-            <option value="normal" selected>Нормально</option>
-            <option value="fast">Быстро</option>
-          </select>
+      <div id="header">
+        <span id="hudScore">Очки: 0</span>
+        <span id="hudLevel">Уровень 1/50</span>
+        <span id="hudLives">Жизни: ●●●</span>
+        <button id="btnPause" title="Пауза">⏸ Пауза</button>
+        <button id="btnSettings" title="Настройки">⚙</button>
+      </div>
+      <div id="board">
+        <canvas id="game"></canvas>
+        <div id="panel" class="hidden">
+          <h2>Настройки</h2>
+          <div class="row">
+            <span>Скорость мяча:</span>
+            <select id="speed">
+              <option value="slow">Медленно</option>
+              <option value="normal" selected>Нормально</option>
+              <option value="fast">Быстро</option>
+            </select>
+          </div>
+          <h3>Лучшие результаты</h3>
+          <ol id="scores"></ol>
+          <h3>Выбор уровня</h3>
+          <div id="levels"></div>
+          <h3>Игра</h3>
+          <div id="saveInfo"></div>
+          <button id="btnResume" class="action">Продолжить сохранение</button>
+          <button id="btnNew" class="action">Новая игра</button>
+          <button id="btnClose">Закрыть</button>
         </div>
-        <h3>Лучшие результаты</h3>
-        <ol id="scores"></ol>
-        <h3>Выбор уровня</h3>
-        <div id="levels"></div>
-        <button id="btnClose">Закрыть</button>
       </div>
     </div>
   </div>

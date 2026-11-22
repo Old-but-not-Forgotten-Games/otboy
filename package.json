@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "start": "bun --hot ./index.ts",
+    "build": "bun build index.html --outdir dist",
     "typecheck": "bun check"
   },
   "devDependencies": {

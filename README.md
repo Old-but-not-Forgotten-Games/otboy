@@ -48,6 +48,18 @@ docker compose down            # stop
 
 The game is served at **http://localhost:3000** (port configurable via `PORT` env var).
 
+## Static build & GitHub Pages
+
+```bash
+bun run build        # outputs dist/ (index.html + bundled JS, CSS inline)
+```
+
+Deploying to GitHub Pages:
+
+1. In the repo settings: **Settings → Pages → Source: GitHub Actions**
+2. Push to `main` — `.github/workflows/deploy.yml` builds and deploys automatically
+3. The game is served at `https://<user>.github.io/<repo>/`
+
 ## Type check & format
 
 ```bash
