@@ -1,7 +1,7 @@
 services:
-  arkanoid:
+  otboy:
     build: .
-    container_name: arkanoid
+    container_name: otboy
     ports:
       - "3000:3000"
     environment:

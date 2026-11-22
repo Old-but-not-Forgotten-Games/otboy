@@ -13,4 +13,4 @@ Bun.serve({
   port,
 });
 
-console.log(`Arcanoid running at http://localhost:${port}`);
+console.log(`Otboy running at http://localhost:${port}`);

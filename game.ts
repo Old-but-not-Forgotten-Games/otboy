@@ -1,4 +1,4 @@
-// Арканоид — 50 уровней, настройки, топ-5, выбор уровня.
+// Отбой — 50 уровней, настройки, топ-5, выбор уровня.
 // Вся логика на клиенте; данные — в localStorage.
 // Уровни генерируются процедурно (50 штук без роста бандла — лениза не нужна).
 
@@ -35,10 +35,10 @@ const SPEEDS: Record<Speed, number> = { slow: 300, normal: 380, fast: 480 };
 interface ScoreEntry { score: number; level: number; date: string; }
 
 const LS = {
-  best: "arkanoid.bestLevel",
-  scores: "arkanoid.topScores",
-  speed: "arkanoid.speed",
-  save: "arkanoid.save",
+  best: "otboy.bestLevel",
+  scores: "otboy.topScores",
+  speed: "otboy.speed",
+  save: "otboy.save",
 };
 
 function loadBest(): number {

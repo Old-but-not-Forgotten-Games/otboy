@@ -1,6 +1,6 @@
-# Arkanoid
+# Отбой (Otboy)
 
-A simple browser Arkanoid (Breakout) game. 100% client-side — all game logic runs in the browser, no server interaction. Built with TypeScript and served by [Bun](https://bun.com).
+A simple browser Breakout-style game. 100% client-side — all game logic runs in the browser, no server interaction. Built with TypeScript and served by [Bun](https://bun.com).
 
 ## Features
 
@@ -81,4 +81,4 @@ bun fmt            # format
 
 - `PORT` — server port (default `3000`)
 - Game constants (canvas size, paddle/ball size, ball speeds, level count) are at the top of `game.ts`
-- Saved data keys in `localStorage`: `arkanoid.bestLevel`, `arkanoid.topScores`, `arkanoid.speed`
+- Saved data keys in `localStorage`: `otboy.bestLevel`, `otboy.topScores`, `otboy.speed`, `otboy.save`

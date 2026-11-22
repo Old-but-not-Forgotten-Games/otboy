@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Arkanoid (Breakout) — a 100% client-side browser game. All logic runs in the browser; Bun is only the dev/production server. UI text is in **Russian** — keep it that way.
+Отбой (Otboy) — a Breakout-style game, 100% client-side. All logic runs in the browser; Bun is only the dev/production server. UI text is in **Russian** — keep it that way.
 
 ## Commands
 
@@ -29,7 +29,7 @@ Key invariants to preserve when editing:
 - **Fixed logical canvas size 480×720** (`W`/`H` at top of `game.ts`). All coordinates are in this space; `resize()` scales via CSS + `ctx.setTransform(dpr, ...)`. Never change the logical size without updating the physics constants.
 - **Levels are deterministic, not stored.** `makeBricks(n)` procedurally generates level `n` (8 patterns × grid sizes, 2 colors per level). Save/restore relies on this: `SaveData.bricks` is only a `boolean[]` of alive flags, re-applied onto a freshly generated `makeBricks(s.level)`. Changing the generator changes all saved games' layouts.
 - **Game state machine**: `"ready" | "playing" | "paused" | "gameover" | "win"` — transitions happen in the pointer handler, pause button, and `update()`. The `paused` flag (settings panel open) is separate from `state === "paused"`.
-- **Persistence is `localStorage` only**, keys in the `LS` object: `arkanoid.bestLevel` (unlocked level, 0-based), `arkanoid.topScores` (top-5), `arkanoid.speed`, `arkanoid.save` (mid-game snapshot, auto-saved every second while playing).
+- **Persistence is `localStorage` only**, keys in the `LS` object: `otboy.bestLevel` (unlocked level, 0-based), `otboy.topScores` (top-5), `otboy.speed`, `otboy.save` (mid-game snapshot, auto-saved every second while playing).
 - **Ball speed** comes from `SPEEDS[speed]` (slow/normal/fast) and is re-read on paddle hit and `resetBall()` — it does not change mid-flight.
 
 ## Conventions
