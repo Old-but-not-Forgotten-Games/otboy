@@ -6,6 +6,8 @@ const W = 480;
 const H = 720;
 const BORDER = 6; // видимая рамка поля
 
+// empty commit
+
 const canvas = document.getElementById("game") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
 const headerEl = document.getElementById("header") as HTMLDivElement;
